@@ -26,3 +26,10 @@ class UserViewsTestCase(TestCase):
 
     def tearDown(self):
         db.session.rollback()
+
+    def test_list_users(self):
+        with app.test_client() as client:
+            resp = client.get("/")
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Charlie', html)
