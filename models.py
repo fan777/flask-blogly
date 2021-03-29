@@ -16,6 +16,7 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     image_url = db.Column(db.Text())
+    posts = db.relationship('Post', backref='posts')
 
     def __repr__(self):
         """Show info about user."""
@@ -25,3 +26,14 @@ class User(db.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class Post(db.Model):
+    __tablename__ = 'posts'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(50), nullable=False)
+    content = db.Column(db.Text())
+    created_at = db.Column(db.DateTime(), nullable=False,
+                           default=db.func.current_timestamp())
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))

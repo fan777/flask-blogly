@@ -2,7 +2,7 @@
 
 from flask import Flask, request, render_template, redirect
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
@@ -27,6 +27,7 @@ def root():
 def list_users():
     """Shows list of all users in db"""
     users = User.query.order_by(User.last_name, User.first_name).all()
+    posts = Post.query.order_by
     return render_template('users/index.html', users=users)
 
 
