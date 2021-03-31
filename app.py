@@ -19,16 +19,22 @@ db.create_all()
 
 @app.route('/')
 def root():
-    """Redirect to list of users"""
-    return redirect("/users")
+    """Redirect to recent posts"""
+    return redirect("/posts")
+
+
+@app.route('/posts')
+def list_recent_posts():
+    """Show list of recent posts"""
+    posts = Post.query.order_by(Post.created_at.desc()).limit(5).all()
+    return render_template('posts/recent.html', posts=posts)
 
 
 @app.route('/users')
 def list_users():
     """Shows list of all users in db"""
     users = User.query.order_by(User.last_name, User.first_name).all()
-    posts = Post.query.order_by
-    return render_template('users/index.html', users=users)
+    return render_template('users/list.html', users=users)
 
 
 @app.route('/users/new', methods=["GET"])
@@ -47,7 +53,7 @@ def create_user():
                     last_name=last_name, image_url=image_url)
     db.session.add(new_user)
     db.session.commit()
-    return redirect(f'{new_user.id}')
+    return redirect(f'/users/{new_user.id}')
 
 
 @app.route('/users/<int:user_id>')
@@ -66,7 +72,7 @@ def edit_user_form(user_id):
 
 @app.route('/users/<int:user_id>/edit', methods=["POST"])
 def edit_user(user_id):
-    """Display edit user form"""
+    """Update user"""
     user = User.query.get_or_404(user_id)
     user.first_name = request.form["first_name"]
     user.last_name = request.form["last_name"]
@@ -78,8 +84,60 @@ def edit_user(user_id):
 
 @app.route('/users/<int:user_id>/delete', methods=["POST"])
 def delete_user(user_id):
-    """Display edit user form"""
+    """Delete user"""
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
     return redirect('/users')
+
+
+@app.route('/users/<int:user_id>/posts/new', methods=["GET"])
+def new_post_form(user_id):
+    """Display new post form"""
+    user = User.query.get_or_404(user_id)
+    return render_template('posts/new.html', user=user)
+
+
+@app.route('/users/<int:user_id>/posts/new', methods=["POST"])
+def create_post(user_id):
+    """Create new post"""
+    title = request.form["title"]
+    content = request.form["content"]
+    new_post = Post(title=title, content=content, user_id=user_id)
+    db.session.add(new_post)
+    db.session.commit()
+    return redirect(f'/users/{user_id}')
+
+
+@app.route('/posts/<int:post_id>')
+def show_post(post_id):
+    """Show details about a single post"""
+    post = Post.query.get_or_404(post_id)
+    return render_template('posts/details.html', post=post)
+
+
+@app.route('/posts/<int:post_id>/edit', methods=["GET"])
+def edit_post_form(post_id):
+    """Display edit post form"""
+    post = Post.query.get_or_404(post_id)
+    return render_template('posts/edit.html', post=post)
+
+
+@app.route('/posts/<int:post_id>/edit', methods=["POST"])
+def edit_post(post_id):
+    """Update post"""
+    post = Post.query.get_or_404(post_id)
+    post.title = request.form["title"]
+    post.content = request.form["content"]
+    db.session.add(post)
+    db.session.commit()
+    return redirect(f'/posts/{post.id}')
+
+
+@app.route('/posts/<int:post_id>/delete', methods=["POST"])
+def delete_post(post_id):
+    """Delete post"""
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    return redirect(f'/users/{post.user_id}')
